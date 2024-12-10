@@ -354,6 +354,11 @@ pub enum DeriveTrait {
 
     // External crates
     //
+    #[cfg_attr(not(feature = "borsh"), allow(dead_code))]
+    BorshSerialize,
+    #[cfg_attr(not(feature = "borsh"), allow(dead_code))]
+    BorshDeserialize,
+
     #[cfg_attr(not(feature = "serde"), allow(dead_code))]
     SerdeSerialize,
     #[cfg_attr(not(feature = "serde"), allow(dead_code))]

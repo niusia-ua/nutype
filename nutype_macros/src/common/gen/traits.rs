@@ -262,6 +262,59 @@ pub fn gen_impl_trait_from_str(
     }
 }
 
+pub fn gen_impl_trait_borsh_serialize(type_name: &TypeName, generics: &Generics) -> TokenStream {
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+
+    // Turn `<T>` into `<T: BorshSerialize>`
+    let all_generics_with_serialize_bound =
+        add_bound_to_all_type_params(generics, syn::parse_quote!(::borsh::BorshSerialize));
+
+    quote! {
+        impl #all_generics_with_serialize_bound ::borsh::BorshSerialize for #type_name #generics_without_bounds {
+            fn serialize<W>(&self, writer: &mut W) -> ::core::result::Result<(), ::std::io::Error>
+            where
+                W: ::std::io::Write
+            {
+                self.0.serialize(writer)
+            }
+        }
+    }
+}
+
+pub fn gen_impl_trait_borsh_deserialize(
+    type_name: &TypeName,
+    type_generics: &Generics,
+    inner_type: impl Into<InnerType>,
+    maybe_error_type_name: Option<&ErrorTypePath>,
+) -> TokenStream {
+    let inner_type: InnerType = inner_type.into();
+    let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
+        let type_name_str = type_name.to_string();
+        quote! {
+            #type_name::try_new(raw_value).map_err(|validation_error| {
+                let err_msg = format!("{validation_error} Expected valid {}", #type_name_str);
+                ::std::io::Error::new(::std::io::ErrorKind::InvalidData, err_msg)
+            })
+        }
+    } else {
+        quote! {
+            Ok(#type_name::new(raw_value))
+        }
+    };
+
+    quote! {
+        impl #type_generics ::borsh::BorshDeserialize for #type_name #type_generics {
+            fn deserialize_reader<R>(reader: &mut R) -> ::core::result::Result<Self, ::std::io::Error>
+            where
+                R: ::std::io::Read
+            {
+                let raw_value = #inner_type::deserialize_reader(reader)?;
+                #raw_value_to_result
+            }
+        }
+    }
+}
+
 pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics) -> TokenStream {
     let generics_without_bounds = strip_trait_bounds_on_generics(generics);
 

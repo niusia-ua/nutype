@@ -770,6 +770,70 @@ mod traits {
         }
     }
 
+    #[cfg(feature = "borsh")]
+    mod serialization {
+        use super::*;
+
+        mod borsh_format {
+            use super::*;
+
+            #[cfg(feature = "borsh")]
+            #[test]
+            fn test_trait_borsh_serialize() {
+                #[nutype(derive(BorshSerialize))]
+                pub struct Offset(i64);
+
+                let offset = Offset::new(-280);
+                let offset_borsh = borsh::to_vec(&offset).unwrap();
+                assert_eq!(offset_borsh, vec![232, 254, 255, 255, 255, 255, 255, 255]);
+            }
+
+            #[cfg(feature = "borsh")]
+            #[test]
+            fn test_trait_deserialize_without_validation() {
+                #[nutype(derive(BorshDeserialize))]
+                pub struct Offset(i64);
+
+                {
+                    let encoded = borsh::to_vec("three").unwrap();
+                    let res: Result<Offset, _> = borsh::from_slice(&encoded);
+                    assert!(res.is_err());
+                }
+
+                {
+                    let encoded = borsh::to_vec(&-259_i64).unwrap();
+                    let offset: Offset = borsh::from_slice(&encoded).unwrap();
+                    assert_eq!(offset.into_inner(), -259);
+                }
+            }
+
+            #[cfg(feature = "borsh")]
+            #[test]
+            fn test_trait_deserialize_with_validation() {
+                #[nutype(validate(greater_or_equal = 13), derive(BorshDeserialize))]
+                pub struct Offset(i64);
+
+                {
+                    let encoded = borsh::to_vec("three").unwrap();
+                    let res: Result<Offset, _> = borsh::from_slice(&encoded);
+                    assert!(res.is_err());
+                }
+
+                {
+                    let encoded = borsh::to_vec(&12_i64).unwrap();
+                    let res: Result<Offset, _> = borsh::from_slice(&encoded);
+                    assert!(res.is_err());
+                }
+
+                {
+                    let encoded = borsh::to_vec(&13_i64).unwrap();
+                    let offset: Offset = borsh::from_slice(&encoded).unwrap();
+                    assert_eq!(offset.into_inner(), 13);
+                }
+            }
+        }
+    }
+
     #[cfg(test)]
     mod trait_default {
         use super::*;

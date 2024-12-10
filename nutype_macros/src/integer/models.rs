@@ -60,6 +60,8 @@ pub enum IntegerDeriveTrait {
     Deref,
 
     // External crates
+    BorshSerialize,
+    BorshDeserialize,
     SerdeSerialize,
     SerdeDeserialize,
     SchemarsJsonSchema,

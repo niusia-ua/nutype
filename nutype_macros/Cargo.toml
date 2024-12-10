@@ -37,6 +37,7 @@ proc-macro = true
 
 [features]
 std = []
+borsh = []
 serde = []
 schemars08 = []
 new_unchecked = []

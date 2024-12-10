@@ -144,6 +144,7 @@ fn to_string_derive_trait(
         DeriveTrait::Hash => Ok(StringDeriveTrait::Hash),
         DeriveTrait::Borrow => Ok(StringDeriveTrait::Borrow),
         DeriveTrait::Into => Ok(StringDeriveTrait::Into),
+        DeriveTrait::BorshSerialize | DeriveTrait::BorshDeserialize => todo!(), // TODO:
         DeriveTrait::SerdeSerialize => Ok(StringDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(StringDeriveTrait::SerdeDeserialize),
         DeriveTrait::SchemarsJsonSchema => Ok(StringDeriveTrait::SchemarsJsonSchema),

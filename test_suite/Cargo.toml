@@ -9,6 +9,7 @@ edition = "2021"
 nutype = { path = "../nutype" }
 trybuild = { version = "1.0.71", features = ["diff"] }
 
+borsh = { version = "1.5.3", optional = true }
 serde = { version = "1.0.150", optional = true }
 serde_json = { version = "1.0.89", optional = true }
 schemars = { version = "0.8", optional = true }
@@ -23,6 +24,7 @@ num = "0.4.3"
 thiserror = "1.0.63"
 
 [features]
+borsh = ["nutype/borsh", "dep:borsh"]
 serde = ["nutype/serde", "dep:serde", "dep:serde_json"]
 regex = ["nutype/regex", "dep:regex", "dep:lazy_static", "dep:once_cell"]
 arbitrary = ["nutype/arbitrary"]

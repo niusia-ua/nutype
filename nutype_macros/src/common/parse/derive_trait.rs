@@ -26,6 +26,24 @@ impl Parse for SpannedDeriveTrait {
             "Hash" => DeriveTrait::Hash,
             "Borrow" => DeriveTrait::Borrow,
             "Default" => DeriveTrait::Default,
+            "BorshSerialize" => {
+                cfg_if! {
+                    if #[cfg(feature = "borsh")] {
+                        DeriveTrait::BorshSerialize
+                    } else {
+                        return Err(syn::Error::new(ident.span(), "To derive BorshSerialize, the feature `borsh` of the crate `nutype` needs to be enabled."));
+                    }
+                }
+            }
+            "BorshDeserialize" => {
+                cfg_if! {
+                    if #[cfg(feature = "borsh")] {
+                        DeriveTrait::BorshDeserialize
+                    } else {
+                        return Err(syn::Error::new(ident.span(), "To derive BorshDeserialize, the feature `borsh` of the crate `nutype` needs to be enabled."));
+                    }
+                }
+            }
             "Serialize" => {
                 cfg_if! {
                     if #[cfg(feature = "serde")] {

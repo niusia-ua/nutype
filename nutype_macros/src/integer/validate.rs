@@ -100,6 +100,8 @@ fn to_integer_derive_trait(
         DeriveTrait::Hash => Ok(IntegerDeriveTrait::Hash),
         DeriveTrait::Borrow => Ok(IntegerDeriveTrait::Borrow),
         DeriveTrait::Copy => Ok(IntegerDeriveTrait::Copy),
+        DeriveTrait::BorshSerialize => Ok(IntegerDeriveTrait::BorshSerialize),
+        DeriveTrait::BorshDeserialize => Ok(IntegerDeriveTrait::BorshDeserialize),
         DeriveTrait::SerdeSerialize => Ok(IntegerDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(IntegerDeriveTrait::SerdeDeserialize),
         DeriveTrait::SchemarsJsonSchema => Ok(IntegerDeriveTrait::SchemarsJsonSchema),

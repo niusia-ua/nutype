@@ -46,6 +46,8 @@ pub enum AnyDeriveTrait {
     Hash,
 
     // External crates
+    BorshSerialize,
+    BorshDeserialize,
     SerdeSerialize,
     SerdeDeserialize,
     ArbitraryArbitrary,

@@ -5,15 +5,15 @@ use quote::{quote, ToTokens};
 use std::collections::HashSet;
 
 use crate::{
-    any::models::AnyDeriveTrait,
-    any::models::{AnyGuard, AnyInnerType},
+    any::models::{AnyDeriveTrait, AnyGuard, AnyInnerType},
     common::{
         gen::traits::{
-            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
-            gen_impl_trait_deref, gen_impl_trait_display, gen_impl_trait_from,
-            gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
-            gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
-            GeneratableTrait, GeneratableTraits, GeneratedTraits,
+            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_borsh_deserialize,
+            gen_impl_trait_borsh_serialize, gen_impl_trait_default, gen_impl_trait_deref,
+            gen_impl_trait_display, gen_impl_trait_from, gen_impl_trait_from_str,
+            gen_impl_trait_into, gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
+            gen_impl_trait_try_from, split_into_generatable_traits, GeneratableTrait,
+            GeneratableTraits, GeneratedTraits,
         },
         models::TypeName,
     },
@@ -45,6 +45,12 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::FromStr => AnyGeneratableTrait::Irregular(AnyIrregularTrait::FromStr),
             AnyDeriveTrait::TryFrom => AnyGeneratableTrait::Irregular(AnyIrregularTrait::TryFrom),
             AnyDeriveTrait::Default => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Default),
+            AnyDeriveTrait::BorshSerialize => {
+                AnyGeneratableTrait::Irregular(AnyIrregularTrait::BorshSerialize)
+            }
+            AnyDeriveTrait::BorshDeserialize => {
+                AnyGeneratableTrait::Irregular(AnyIrregularTrait::BorshDeserialize)
+            }
             AnyDeriveTrait::SerdeSerialize => {
                 AnyGeneratableTrait::Irregular(AnyIrregularTrait::SerdeSerialize)
             }
@@ -100,6 +106,8 @@ enum AnyIrregularTrait {
     FromStr,
     TryFrom,
     Default,
+    BorshSerialize,
+    BorshDeserialize,
     SerdeSerialize,
     SerdeDeserialize,
     ArbitraryArbitrary,
@@ -174,6 +182,12 @@ fn gen_implemented_traits(
                     Err(syn::Error::new(span, msg))
                 }
             },
+            AnyIrregularTrait::BorshSerialize => Ok(
+                gen_impl_trait_borsh_serialize(type_name, generics)
+            ),
+            AnyIrregularTrait::BorshDeserialize => Ok(
+                gen_impl_trait_borsh_deserialize(type_name, generics, inner_type, maybe_error_type_name)
+            ),
             AnyIrregularTrait::SerdeSerialize => Ok(
                 gen_impl_trait_serde_serialize(type_name, generics)
             ),

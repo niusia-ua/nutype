@@ -9,6 +9,10 @@ use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(
+    feature = "borsh",
+    derive(borsh::BorshSerialize, borsh::BorshDeserialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Point {
     x: i32,
@@ -262,15 +266,61 @@ mod traits {
         assert_eq!(Lugar::default().into_inner(), Point::new(6, 9),);
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(any(feature = "borsh", feature = "serde"))]
     mod serialization {
         use super::*;
 
-        #[nutype(derive(Debug, Serialize, Deserialize, PartialEq))]
-        struct Place(Point);
+        #[cfg(feature = "borsh")]
+        mod borsh_format {
+            use super::*;
 
+            #[nutype(derive(Debug, PartialEq, BorshSerialize, BorshDeserialize))]
+            struct Place(Point);
+
+            #[test]
+            fn test_trait_borsh_serialize() {
+                let place = Place::new(Point::new(22, 99));
+
+                let place_borsh = borsh::to_vec(&place).unwrap();
+                assert_eq!(place_borsh, [22, 0, 0, 0, 99, 0, 0, 0]);
+            }
+
+            #[test]
+            fn test_trait_borsh_deserialize_without_validation() {
+                let place: Place = borsh::from_slice(&[22, 0, 0, 0, 99, 0, 0, 0]).unwrap();
+                assert_eq!(place.into_inner(), Point::new(22, 99));
+            }
+
+            #[test]
+            fn test_trait_borsh_deserialize_with_validation() {
+                #[nutype(
+                    derive(BorshDeserialize, Debug),
+                    validate(predicate = |p: &Point| p.y == p.x ),
+                )]
+                pub struct LinePoint(Point);
+
+                {
+                    let err =
+                        borsh::from_slice::<LinePoint>(&[7, 0, 0, 0, 9, 0, 0, 0]).unwrap_err();
+                    assert_eq!(
+                        err.to_string(),
+                        "LinePoint failed the predicate test. Expected valid LinePoint"
+                    );
+                }
+
+                {
+                    let lp = borsh::from_slice::<LinePoint>(&[7, 0, 0, 0, 7, 0, 0, 0]).unwrap();
+                    assert_eq!(lp.into_inner(), Point::new(7, 7));
+                }
+            }
+        }
+
+        #[cfg(feature = "serde")]
         mod json_format {
             use super::*;
+
+            #[nutype(derive(Debug, PartialEq, Serialize, Deserialize))]
+            struct Place(Point);
 
             #[test]
             fn test_trait_serialize() {
@@ -309,8 +359,12 @@ mod traits {
             }
         }
 
+        #[cfg(feature = "serde")]
         mod ron_format {
             use super::*;
+
+            #[nutype(derive(Debug, PartialEq, Serialize, Deserialize))]
+            struct Place(Point);
 
             #[test]
             fn test_ron_roundtrip() {
@@ -323,8 +377,12 @@ mod traits {
             }
         }
 
+        #[cfg(feature = "serde")]
         mod message_pack_format {
             use super::*;
+
+            #[nutype(derive(Debug, PartialEq, Serialize, Deserialize))]
+            struct Place(Point);
 
             #[test]
             fn test_rmp_roundtrip() {

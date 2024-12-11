@@ -8,11 +8,12 @@ use syn::Generics;
 use crate::{
     common::{
         gen::traits::{
-            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
-            gen_impl_trait_deref, gen_impl_trait_display, gen_impl_trait_from,
-            gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
-            gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
-            GeneratableTrait, GeneratableTraits, GeneratedTraits,
+            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_borsh_deserialize,
+            gen_impl_trait_borsh_serialize, gen_impl_trait_default, gen_impl_trait_deref,
+            gen_impl_trait_display, gen_impl_trait_from, gen_impl_trait_from_str,
+            gen_impl_trait_into, gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
+            gen_impl_trait_try_from, split_into_generatable_traits, GeneratableTrait,
+            GeneratableTraits, GeneratedTraits,
         },
         models::TypeName,
     },
@@ -47,6 +48,8 @@ enum FloatIrregularTrait {
     Borrow,
     Display,
     Default,
+    BorshSerialize,
+    BorshDeserialize,
     SerdeSerialize,
     SerdeDeserialize,
     ArbitraryArbitrary,
@@ -90,6 +93,12 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             }
             FloatDeriveTrait::Default => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::Default)
+            }
+            FloatDeriveTrait::BorshSerialize => {
+                FloatGeneratableTrait::Irregular(FloatIrregularTrait::BorshSerialize)
+            }
+            FloatDeriveTrait::BorshDeserialize => {
+                FloatGeneratableTrait::Irregular(FloatIrregularTrait::BorshDeserialize)
             }
             FloatDeriveTrait::SerdeSerialize => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::SerdeSerialize)
@@ -190,6 +199,13 @@ fn gen_implemented_traits<T: ToTokens>(
                     Err(syn::Error::new(span, msg))
                 }
             },
+            FloatIrregularTrait::BorshSerialize => Ok(gen_impl_trait_borsh_serialize(type_name, generics)),
+            FloatIrregularTrait::BorshDeserialize => Ok(gen_impl_trait_borsh_deserialize(
+                type_name,
+                generics,
+                inner_type,
+                maybe_error_type_name,
+            )),
             FloatIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(type_name, generics)),
             FloatIrregularTrait::SerdeDeserialize => Ok(gen_impl_trait_serde_deserialize(
                 type_name,

@@ -193,7 +193,8 @@ fn to_float_derive_trait(
             }
         }
         DeriveTrait::TryFrom => Ok(FloatDeriveTrait::TryFrom),
-        DeriveTrait::BorshSerialize | DeriveTrait::BorshDeserialize => todo!(), // TODO:
+        DeriveTrait::BorshSerialize => Ok(FloatDeriveTrait::BorshSerialize),
+        DeriveTrait::BorshDeserialize => Ok(FloatDeriveTrait::BorshDeserialize),
         DeriveTrait::SerdeSerialize => Ok(FloatDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(FloatDeriveTrait::SerdeDeserialize),
         DeriveTrait::SchemarsJsonSchema => Ok(FloatDeriveTrait::SchemarsJsonSchema),

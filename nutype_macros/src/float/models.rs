@@ -60,6 +60,8 @@ pub enum FloatDeriveTrait {
     Deref,
 
     // External crates
+    BorshSerialize,
+    BorshDeserialize,
     SerdeSerialize,
     SerdeDeserialize,
     SchemarsJsonSchema,

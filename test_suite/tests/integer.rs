@@ -677,14 +677,66 @@ mod traits {
         assert_eq!(age.to_string(), "35");
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(any(feature = "borsh", feature = "serde"))]
     mod serialization {
         use super::*;
 
+        #[cfg(feature = "borsh")]
+        mod borsh_format {
+            use super::*;
+
+            #[test]
+            fn test_trait_borsh_serialize() {
+                #[nutype(derive(BorshSerialize))]
+                pub struct Offset(i64);
+
+                let offset = Offset::new(-280);
+                let offset_borsh = borsh::to_vec(&offset).unwrap();
+                assert_eq!(offset_borsh, (-280_i64).to_le_bytes());
+            }
+
+            #[test]
+            fn test_trait_borsh_deserialize_without_validation() {
+                #[nutype(derive(BorshDeserialize))]
+                pub struct Offset(i64);
+
+                {
+                    let res: Result<Offset, _> = borsh::from_slice("three".as_bytes());
+                    assert!(res.is_err());
+                }
+
+                {
+                    let offset: Offset = borsh::from_slice(&(-259_i64).to_le_bytes()).unwrap();
+                    assert_eq!(offset.into_inner(), -259);
+                }
+            }
+
+            #[test]
+            fn test_trait_borsh_deserialize_with_validation() {
+                #[nutype(validate(greater_or_equal = 13), derive(BorshDeserialize))]
+                pub struct Offset(i64);
+
+                {
+                    let res: Result<Offset, _> = borsh::from_slice("three".as_bytes());
+                    assert!(res.is_err());
+                }
+
+                {
+                    let res: Result<Offset, _> = borsh::from_slice(&12_i64.to_le_bytes());
+                    assert!(res.is_err());
+                }
+
+                {
+                    let offset: Offset = borsh::from_slice(&13_i64.to_le_bytes()).unwrap();
+                    assert_eq!(offset.into_inner(), 13);
+                }
+            }
+        }
+
+        #[cfg(feature = "serde")]
         mod json_format {
             use super::*;
 
-            #[cfg(feature = "serde")]
             #[test]
             fn test_trait_serialize() {
                 #[nutype(derive(Serialize))]
@@ -695,7 +747,6 @@ mod traits {
                 assert_eq!(offset_json, "-280");
             }
 
-            #[cfg(feature = "serde")]
             #[test]
             fn test_trait_deserialize_without_validation() {
                 #[nutype(derive(Deserialize))]
@@ -712,7 +763,6 @@ mod traits {
                 }
             }
 
-            #[cfg(feature = "serde")]
             #[test]
             fn test_trait_deserialize_with_validation() {
                 #[nutype(validate(greater_or_equal = 13), derive(Deserialize))]
@@ -735,6 +785,7 @@ mod traits {
             }
         }
 
+        #[cfg(feature = "serde")]
         mod ron_format {
             use super::*;
 
@@ -752,6 +803,7 @@ mod traits {
             }
         }
 
+        #[cfg(feature = "serde")]
         mod message_pack_format {
             use super::*;
 
@@ -766,70 +818,6 @@ mod traits {
                 let deserialized: Weight = rmp_serde::from_slice(&bytes).unwrap();
 
                 assert_eq!(deserialized, weight);
-            }
-        }
-    }
-
-    #[cfg(feature = "borsh")]
-    mod serialization {
-        use super::*;
-
-        mod borsh_format {
-            use super::*;
-
-            #[cfg(feature = "borsh")]
-            #[test]
-            fn test_trait_borsh_serialize() {
-                #[nutype(derive(BorshSerialize))]
-                pub struct Offset(i64);
-
-                let offset = Offset::new(-280);
-                let offset_borsh = borsh::to_vec(&offset).unwrap();
-                assert_eq!(offset_borsh, vec![232, 254, 255, 255, 255, 255, 255, 255]);
-            }
-
-            #[cfg(feature = "borsh")]
-            #[test]
-            fn test_trait_deserialize_without_validation() {
-                #[nutype(derive(BorshDeserialize))]
-                pub struct Offset(i64);
-
-                {
-                    let encoded = borsh::to_vec("three").unwrap();
-                    let res: Result<Offset, _> = borsh::from_slice(&encoded);
-                    assert!(res.is_err());
-                }
-
-                {
-                    let encoded = borsh::to_vec(&-259_i64).unwrap();
-                    let offset: Offset = borsh::from_slice(&encoded).unwrap();
-                    assert_eq!(offset.into_inner(), -259);
-                }
-            }
-
-            #[cfg(feature = "borsh")]
-            #[test]
-            fn test_trait_deserialize_with_validation() {
-                #[nutype(validate(greater_or_equal = 13), derive(BorshDeserialize))]
-                pub struct Offset(i64);
-
-                {
-                    let encoded = borsh::to_vec("three").unwrap();
-                    let res: Result<Offset, _> = borsh::from_slice(&encoded);
-                    assert!(res.is_err());
-                }
-
-                {
-                    let encoded = borsh::to_vec(&12_i64).unwrap();
-                    let res: Result<Offset, _> = borsh::from_slice(&encoded);
-                    assert!(res.is_err());
-                }
-
-                {
-                    let encoded = borsh::to_vec(&13_i64).unwrap();
-                    let offset: Offset = borsh::from_slice(&encoded).unwrap();
-                    assert_eq!(offset.into_inner(), 13);
-                }
             }
         }
     }

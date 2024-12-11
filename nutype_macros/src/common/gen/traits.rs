@@ -271,9 +271,9 @@ pub fn gen_impl_trait_borsh_serialize(type_name: &TypeName, generics: &Generics)
 
     quote! {
         impl #all_generics_with_serialize_bound ::borsh::BorshSerialize for #type_name #generics_without_bounds {
-            fn serialize<W>(&self, writer: &mut W) -> ::core::result::Result<(), ::std::io::Error>
+            fn serialize<W>(&self, writer: &mut W) -> ::core::result::Result<(), ::borsh::io::Error>
             where
-                W: ::std::io::Write
+                W: ::borsh::io::Write
             {
                 self.0.serialize(writer)
             }
@@ -293,7 +293,7 @@ pub fn gen_impl_trait_borsh_deserialize(
         quote! {
             #type_name::try_new(raw_value).map_err(|validation_error| {
                 let err_msg = format!("{validation_error} Expected valid {}", #type_name_str);
-                ::std::io::Error::new(::std::io::ErrorKind::InvalidData, err_msg)
+                ::borsh::io::Error::new(::borsh::io::ErrorKind::InvalidData, err_msg)
             })
         }
     } else {
@@ -304,9 +304,9 @@ pub fn gen_impl_trait_borsh_deserialize(
 
     quote! {
         impl #type_generics ::borsh::BorshDeserialize for #type_name #type_generics {
-            fn deserialize_reader<R>(reader: &mut R) -> ::core::result::Result<Self, ::std::io::Error>
+            fn deserialize_reader<R>(reader: &mut R) -> ::core::result::Result<Self, ::borsh::io::Error>
             where
-                R: ::std::io::Read
+                R: ::borsh::io::Read
             {
                 let raw_value = #inner_type::deserialize_reader(reader)?;
                 #raw_value_to_result

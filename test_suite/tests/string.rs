@@ -476,10 +476,59 @@ mod derives {
         }
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(any(feature = "borsh", feature = "serde"))]
     mod serialization {
         use super::*;
 
+        #[cfg(feature = "borsh")]
+        mod borsh_format {
+            use super::*;
+
+            #[test]
+            fn test_trait_borsh_serialize() {
+                #[nutype(derive(BorshSerialize))]
+                pub struct Email(String);
+
+                let email = Email::new("my@example.com");
+                let email_borsh = borsh::to_vec(&email).unwrap();
+                assert_eq!(email_borsh, borsh::to_vec("my@example.com").unwrap());
+            }
+
+            #[test]
+            fn test_trait_borsh_deserialize_without_validation() {
+                #[nutype(derive(BorshDeserialize))]
+                pub struct NaiveEmail(String);
+
+                {
+                    let email: NaiveEmail =
+                        borsh::from_slice(&borsh::to_vec("foobar").unwrap()).unwrap();
+                    assert_eq!(email.into_inner(), "foobar");
+                }
+            }
+
+            #[test]
+            fn test_trait_borsh_deserialize_with_validation() {
+                #[nutype(
+                    validate(predicate = |address| address.contains('@') ),
+                    derive(BorshDeserialize),
+                )]
+                pub struct NaiveEmail(String);
+
+                {
+                    let res: Result<NaiveEmail, _> =
+                        borsh::from_slice(&borsh::to_vec("foobar").unwrap());
+                    assert!(res.is_err());
+                }
+
+                {
+                    let email: NaiveEmail =
+                        borsh::from_slice(&borsh::to_vec("foo@bar.com").unwrap()).unwrap();
+                    assert_eq!(email.into_inner(), "foo@bar.com");
+                }
+            }
+        }
+
+        #[cfg(feature = "serde")]
         mod json_format {
             use super::*;
 
@@ -524,6 +573,7 @@ mod derives {
             }
         }
 
+        #[cfg(feature = "serde")]
         mod ron_format {
             use super::*;
 
@@ -541,6 +591,7 @@ mod derives {
             }
         }
 
+        #[cfg(feature = "serde")]
         mod message_pack_format {
             use super::*;
 

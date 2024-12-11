@@ -71,6 +71,8 @@ pub enum StringDeriveTrait {
 
     // // External crates
     //
+    BorshSerialize,
+    BorshDeserialize,
     SerdeSerialize,
     SerdeDeserialize,
     SchemarsJsonSchema,

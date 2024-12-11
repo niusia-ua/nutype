@@ -156,7 +156,8 @@ pub struct PhoneNumber(String);
 
 The following traits can be derived for a string-based type:
 `Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Deref`,
-`From`, `TryFrom`, `Into`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`.
+`From`, `TryFrom`, `Into`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`,
+`BorshSerialize`, `BorshDeserialize`.
 
 
 ## Integer
@@ -184,7 +185,8 @@ The integer inner types are: `u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32
 
 The following traits can be derived for an integer-based type:
 `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Deref`,
-`Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`.
+`Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`,
+`BorshSerialize`, `BorshDeserialize`.
 
 
 ## Float
@@ -213,7 +215,8 @@ The float inner types are: `f32`, `f64`.
 
 The following traits can be derived for a float-based type:
 `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Deref`,
-`Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`.
+`Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`,
+`BorshSerialize`, `BorshDeserialize`.
 
 It's also possible to derive `Eq` and `Ord` if the validation rules guarantee that `NaN` is excluded.
 This can be done applying by `finite` validation. For example:
@@ -395,6 +398,7 @@ assert_eq!(name.into_inner(), " boo ");
 * `arbitrary` - enables derive of [`arbitrary::Arbitrary`](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html).
 * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 * `regex` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` within its dependencies.
+* `borsh` - integrations with [`borsh`](https://crates.io/crates/borsh) crate. Allows to derive `BorshSerialize` and `BorshDeserialize` traits.
 * `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
 * `schemars08` - allows to derive [`JsonSchema`](https://docs.rs/schemars/0.8.12/schemars/trait.JsonSchema.html) trait of [schemars](https://crates.io/crates/schemars) crate. Note that at the moment validation rules are not respected.
 * `std` - enabled by default. Use `default-features = false` to disable.

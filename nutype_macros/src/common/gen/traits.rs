@@ -275,7 +275,7 @@ pub fn gen_impl_trait_borsh_serialize(type_name: &TypeName, generics: &Generics)
             where
                 W: ::borsh::io::Write
             {
-                self.0.serialize(writer)
+                ::borsh::BorshSerialize::serialize(&self.0, writer)
             }
         }
     }
@@ -314,7 +314,7 @@ pub fn gen_impl_trait_borsh_deserialize(
             where
                 R: ::borsh::io::Read
             {
-                let raw_value = #inner_type::deserialize_reader(reader)?;
+                let raw_value: #inner_type = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
                 #raw_value_to_result
             }
         }
@@ -335,7 +335,7 @@ pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics)
             where
                 S: ::serde::Serializer
             {
-                serializer.serialize_newtype_struct(#type_name_str, &self.0)
+                ::serde::ser::Serializer::serialize_newtype_struct(serializer, #type_name_str, &self.0)
             }
         }
     }

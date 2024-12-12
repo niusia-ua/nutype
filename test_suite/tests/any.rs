@@ -395,6 +395,7 @@ mod traits {
             }
         }
 
+        #[cfg(feature = "serde")]
         mod with_generics {
             use super::*;
 

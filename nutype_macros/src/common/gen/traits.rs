@@ -266,11 +266,11 @@ pub fn gen_impl_trait_borsh_serialize(type_name: &TypeName, generics: &Generics)
     let generics_without_bounds = strip_trait_bounds_on_generics(generics);
 
     // Turn `<T>` into `<T: BorshSerialize>`
-    let all_generics_with_serialize_bound =
+    let all_generics_with_borsh_serialize_bound =
         add_bound_to_all_type_params(generics, syn::parse_quote!(::borsh::BorshSerialize));
 
     quote! {
-        impl #all_generics_with_serialize_bound ::borsh::BorshSerialize for #type_name #generics_without_bounds {
+        impl #all_generics_with_borsh_serialize_bound ::borsh::BorshSerialize for #type_name #generics_without_bounds {
             fn serialize<W>(&self, writer: &mut W) -> ::core::result::Result<(), ::borsh::io::Error>
             where
                 W: ::borsh::io::Write
@@ -302,8 +302,14 @@ pub fn gen_impl_trait_borsh_deserialize(
         }
     };
 
+    let type_generics_without_bounds = strip_trait_bounds_on_generics(type_generics);
+
+    // Turn `<T>` into `<T: BorshDeserialize>`
+    let all_type_generics_with_borsh_deserialize_bound =
+        add_bound_to_all_type_params(type_generics, syn::parse_quote!(::borsh::BorshDeserialize));
+
     quote! {
-        impl #type_generics ::borsh::BorshDeserialize for #type_name #type_generics {
+        impl #all_type_generics_with_borsh_deserialize_bound ::borsh::BorshDeserialize for #type_name #type_generics_without_bounds {
             fn deserialize_reader<R>(reader: &mut R) -> ::core::result::Result<Self, ::borsh::io::Error>
             where
                 R: ::borsh::io::Read

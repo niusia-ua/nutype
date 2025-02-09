@@ -1,9 +1,19 @@
-### v0.5.1 - 2024-xx-xx
+### v0.6.1 - 2025-02-09
+- **[FIX]** Fix `derive(Deserialize)` for no_std.
+
+### v0.6.0 - 2025-02-02
+- **[FEATURE]** Ability to instantiate types in `const` context, when declared with `const_fn` flag.
+- **[FEATURE]** Support `derive(IntoIterator)` for inner types that implement `IntoIterator`.
+- **[FIX]** Enable `&'a str` as an inner type.
+- **[BREAKING]** Fallible `::new()` constructor is removed (was deprecated in 0.4.3).
+
+### v0.5.1 - 2024-12-20
 
 * **[FEATURE]** In `no_std` generate implementation of `::core::error::Error` if Rust version is 1.81 or higher.
 * **[FIX]** Enable to specify custom error as a path (see [#186](https://github.com/greyblake/nutype/issues/186), [#187](https://github.com/greyblake/nutype/pull/187))
 * **[FIX]** Make `Deserialize` derive compile when combination of `no_std` and `serde` features are used ([#182](https://github.com/greyblake/nutype/issues/182))
 * **[FIX]** Fix lint warnings about inner generated module
+* **[FIX]** Fix a conflict when used with `borsch` crate ([#195](https://github.com/greyblake/nutype/pull/195))
 
 ### v0.5.0 - 2024-09-02
 

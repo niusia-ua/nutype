@@ -1,35 +1,31 @@
+use core::fmt::Display;
 use nutype::nutype;
 
-fn validate_name(name: &str) -> Result<(), NameError> {
-    if name.len() < 3 {
-        Err(NameError::TooShort)
-    } else if name.len() > 10 {
-        Err(NameError::TooLong)
-    } else {
-        Ok(())
-    }
-}
+#[nutype(derive(IntoIterator))]
+struct GenericNames<'a, T: Display>(Vec<&'a T>);
 
-#[derive(Debug, PartialEq)]
-enum NameError {
-    TooShort,
-    TooLong,
-}
-
-#[nutype(
-    validate(with = validate_name, error = NameError),
-    derive(Debug, AsRef, PartialEq),
-)]
-struct Name(String);
+#[nutype(derive(IntoIterator))]
+struct StringNames(Vec<String>);
 
 fn main() {
-    let name = Name::try_new("John").unwrap();
-    assert_eq!(name.as_ref(), "John");
+    let alice = "Alice".to_string();
+    let bob = "Bob".to_string();
 
-    assert_eq!(
-        Name::try_new("JohnJohnJohnJohnJohn"),
-        Err(NameError::TooLong)
-    );
+    let string_names = StringNames::new(vec![alice, bob]);
 
-    assert_eq!(Name::try_new("Jo"), Err(NameError::TooShort));
+    // Test iterator over references
+    {
+        let mut ref_iter = (&string_names).into_iter();
+        assert_eq!(ref_iter.next(), Some(&"Alice".to_string()));
+        assert_eq!(ref_iter.next(), Some(&"Bob".to_string()));
+        assert_eq!(ref_iter.next(), None);
+    }
+
+    // Test iterator over owned values
+    {
+        let mut owned_iter = string_names.into_iter();
+        assert_eq!(owned_iter.next(), Some("Alice".to_string()));
+        assert_eq!(owned_iter.next(), Some("Bob".to_string()));
+        assert_eq!(owned_iter.next(), None);
+    }
 }

@@ -259,6 +259,9 @@ pub struct Attributes<G, DT> {
     /// `new_unchecked` flag
     pub new_unchecked: NewUnchecked,
 
+    /// `const_fn` flag
+    pub const_fn: ConstFn,
+
     /// Value for Default trait. Provide with `default = `
     pub default: Option<syn::Expr>,
 
@@ -351,6 +354,7 @@ pub enum DeriveTrait {
     Display,
     Default,
     Deref,
+    IntoIterator,
 
     // External crates
     //
@@ -391,6 +395,26 @@ pub enum NewUnchecked {
     On,
 }
 
+/// The flag that indicates the functions must be generated with `const` keyword.
+#[derive(Debug, Clone, Copy, Default)]
+pub enum ConstFn {
+    #[default]
+    NoConst,
+
+    Const,
+}
+
+impl ToTokens for ConstFn {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        match self {
+            Self::NoConst => {}
+            Self::Const => {
+                quote!(const).to_tokens(token_stream);
+            }
+        };
+    }
+}
+
 pub struct GenerateParams<IT, Trait, Guard> {
     pub inner_type: IT,
     pub doc_attrs: Vec<Attribute>,
@@ -400,6 +424,7 @@ pub struct GenerateParams<IT, Trait, Guard> {
     pub generics: Generics,
     pub guard: Guard,
     pub new_unchecked: NewUnchecked,
+    pub const_fn: ConstFn,
     pub maybe_default_value: Option<syn::Expr>,
 }
 
@@ -443,6 +468,7 @@ pub trait Newtype {
         let Attributes {
             guard,
             new_unchecked,
+            const_fn,
             default: maybe_default_value,
             derive_traits,
         } = Self::parse_attributes(attrs, &type_name)?;
@@ -455,6 +481,7 @@ pub trait Newtype {
             generics,
             guard,
             new_unchecked,
+            const_fn,
             maybe_default_value,
             inner_type,
         })?;

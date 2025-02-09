@@ -88,6 +88,7 @@ fn to_any_derive_trait(
         DeriveTrait::FromStr => Ok(AnyDeriveTrait::FromStr),
         DeriveTrait::TryFrom => Ok(AnyDeriveTrait::TryFrom),
         DeriveTrait::Default => Ok(AnyDeriveTrait::Default),
+        DeriveTrait::IntoIterator => Ok(AnyDeriveTrait::IntoIterator),
         DeriveTrait::BorshSerialize => Ok(AnyDeriveTrait::BorshSerialize),
         DeriveTrait::BorshDeserialize => Ok(AnyDeriveTrait::BorshDeserialize),
         DeriveTrait::SerdeSerialize => Ok(AnyDeriveTrait::SerdeSerialize),

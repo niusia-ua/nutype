@@ -1042,3 +1042,132 @@ mod custom_error {
         assert_eq!(collection.as_ref(), &[1, 2, 3]);
     }
 }
+
+mod constants {
+    use super::*;
+
+    const fn clamp100_x(mut p: Point) -> Point {
+        if p.x > 100 {
+            p.x = 100;
+        } else if p.x < -100 {
+            p.x = -100;
+        }
+        p
+    }
+
+    const fn x_is_greater_than_y(p: &Point) -> bool {
+        p.x > p.y
+    }
+
+    #[test]
+    fn test_any_const_fn() {
+        #[nutype(const_fn, derive(AsRef))]
+        struct ConstPoint(Point);
+
+        const ZERO: ConstPoint = ConstPoint::new(Point { x: 0, y: 0 });
+
+        assert_eq!(ZERO.as_ref().x, 0);
+        assert_eq!(ZERO.as_ref().y, 0);
+    }
+
+    #[test]
+    fn test_any_const_fn_sanitized() {
+        #[nutype(
+            const_fn,
+            derive(AsRef),
+            sanitize(with = clamp100_x),
+        )]
+        struct ConstSanitizedPoint(Point);
+
+        const CLAMPED: ConstSanitizedPoint = ConstSanitizedPoint::new(Point { x: 101, y: -199 });
+
+        assert_eq!(CLAMPED.as_ref().x, 100);
+        assert_eq!(CLAMPED.as_ref().y, -199);
+    }
+
+    #[test]
+    fn test_any_const_fn_validated() {
+        #[nutype(
+            const_fn,
+            derive(AsRef),
+            validate(predicate = x_is_greater_than_y),
+        )]
+        struct ConstSanitizedPoint(Point);
+
+        const VALID: ConstSanitizedPoint =
+            match ConstSanitizedPoint::try_new(Point { x: 11, y: 10 }) {
+                Ok(point) => point,
+                Err(_) => panic!("Expected valid point"),
+            };
+
+        assert_eq!(VALID.as_ref().x, 11);
+        assert_eq!(VALID.as_ref().y, 10);
+    }
+}
+
+mod str_reference {
+    use nutype::nutype;
+
+    #[nutype(
+        derive(Debug),
+        validate(predicate = |name| !name.trim().is_empty())
+    )]
+    pub struct Name<'a>(&'a str);
+
+    #[test]
+    fn test_validation_of_str_reference() {
+        {
+            let name_error = Name::try_new("  ").unwrap_err();
+            assert_eq!(name_error, NameError::PredicateViolated);
+        }
+
+        {
+            let name = Name::try_new("John").unwrap();
+            assert_eq!(name.into_inner(), "John");
+        }
+    }
+}
+
+mod into_iter {
+    use nutype::nutype;
+    use std::fmt::Display;
+
+    #[test]
+    fn test_into_iter_for_vector_of_strings() {
+        #[nutype(derive(IntoIterator))]
+        struct StringNames(Vec<String>);
+
+        let alice = "Alice".to_string();
+        let bob = "Bob".to_string();
+        let string_names = StringNames::new(vec![alice, bob]);
+
+        // Test iterator over references
+        {
+            let mut ref_iter = (&string_names).into_iter();
+            assert_eq!(ref_iter.next(), Some(&"Alice".to_string()));
+            assert_eq!(ref_iter.next(), Some(&"Bob".to_string()));
+            assert_eq!(ref_iter.next(), None);
+        }
+
+        // Test iterator over owned values
+        {
+            let mut owned_iter = string_names.into_iter();
+            assert_eq!(owned_iter.next(), Some("Alice".to_string()));
+            assert_eq!(owned_iter.next(), Some("Bob".to_string()));
+            assert_eq!(owned_iter.next(), None);
+        }
+    }
+
+    #[test]
+    fn test_into_iter_for_vector_of_generic_references() {
+        #[nutype(derive(IntoIterator))]
+        struct GenericNames<'a, T: Display + ?Sized>(Vec<&'a T>);
+
+        let names = GenericNames::new(vec!["Alice", "Bob"]);
+
+        let mut iter = names.into_iter();
+        assert_eq!(iter.next(), Some("Alice"));
+        assert_eq!(iter.next(), Some("Bob"));
+        assert_eq!(iter.next(), None);
+    }
+}
